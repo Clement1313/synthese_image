@@ -38,7 +38,7 @@ public:
     Vector3 pixelCenter(int px, int py, int width, int height) const {
         const float halfW = zmin * std::tan(fovX * 0.5f);
         const float halfH = zmin * std::tan(fovY * 0.5f);
-
+        
         const float u = ((static_cast<float>(px) + 0.5f) / static_cast<float>(width)) * 2.0f - 1.0f;
         const float v = 1.0f - ((static_cast<float>(py) + 0.5f) / static_cast<float>(height)) * 2.0f;
 

@@ -31,11 +31,17 @@ int main() {
         material.get()
     );
 
+    auto sphere2 = std::make_shared<Sphere>(
+        Vector3(2.0f, 0.0f, 2.0f),
+        1.0f,
+        material.get()
+    );
+
     auto light = std::make_shared<PointLight>(Vector3(-2.0f, 3.0f, -1.0f));
 
     scene.addObject(sphere);
+    scene.addObject(sphere2);
     scene.addLight(light);
-
 
     Image img = Image(800, 600);
 
@@ -55,6 +61,7 @@ int main() {
                     bestObject = scene.objects[i];
                 }
             }
+            
 
             if (bestObject == nullptr) {
                 img.setPixel(x, y, Color(0.1f, 0.1f, 0.2f));
