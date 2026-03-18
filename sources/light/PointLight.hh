@@ -3,13 +3,13 @@
 #include "Light.hh"
 #include "Vector3.hh"
 
-class PointLight : Light
+class PointLight : public Light
 {
 public: 
     Vector3 position;
-    PointLight (Vector3 p): position(p) {};
+    explicit PointLight(Vector3 p) : position(p) {}
     
-    Vector3 getPosition() override {
+    Vector3 getPosition() const override {
         return position;
     }
 };
