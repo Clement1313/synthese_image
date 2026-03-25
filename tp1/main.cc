@@ -34,13 +34,17 @@ Colors trace(Ray& ray, Scene& scene, int depth = 0)
 
     if (nearestObj == nullptr)
     {
-        return Colors(0, 0, 50);
+        return Colors(0, 0, 100);
     }
 
     Vector3 p = ray.origin - ray.direction * (-distMin);
     Vector3 normal = nearestObj->normal(p).normalized();
     MaterialInfo mat = (*nearestObj).getMaterial(p);
-    float accR = 0.f, accG = 0.f, accB = 0.f;
+    const float ambientStrength = 0.12f;
+    float accR = mat.color.r * ambientStrength;
+    float accG = mat.color.g * ambientStrength;
+    float accB = mat.color.b * ambientStrength;
+
     for (size_t k = 0; k < scene.ligths.size(); k++)
     {
         Vector3 l = (scene.ligths[k]->getPosition() - p).normalized();
@@ -55,6 +59,25 @@ Colors trace(Ray& ray, Scene& scene, int depth = 0)
             float specular = std::pow(cosAlpha, mat.ns);
             specularContribution = 255.f * mat.ks * specular;
         }
+
+        Vector3 toLight = scene.ligths[k]->getPosition() - p;
+        float distLight = toLight.norm();
+        Vector3 normalized = toLight.normalized();
+
+        const float eps = 1e-4f;
+        Ray shadow = Ray(normalized, p - normal * (-eps));
+        bool hidden = false;
+        for (Object* obj : scene.objects) {
+            if (obj == nearestObj) {
+                continue;
+            }
+            float distShadow = 0;
+            if (obj->intersect(shadow, distShadow) && distShadow > eps && distShadow < distLight - eps) {
+                hidden = true;
+                break;
+            }
+        }
+        if (hidden) continue;
 
         accR += mat.color.r * mat.kd * cosNL + specularContribution;
         accG += mat.color.g * mat.kd * cosNL + specularContribution;
@@ -113,22 +136,34 @@ int main()
                            Vector3(0., 1., 0.), 1.0472f, 0.7854f, 1.0f);
 
     std::vector<Object*> objects;
+    
     MaterialInfo material =
         MaterialInfo(0.8f, 0.3f, 32.0f, Colors(204, 51, 51));
     UniformTexture texture = UniformTexture(material);
-    Sphere sphere = Sphere(Vector3(-1., 0., 0.), 1., &texture);
+    Sphere sphere = Sphere(Vector3(-2.3, 0., 0.), 1., &texture);
+    
     MaterialInfo material2 =
         MaterialInfo(0.8f, 0.3f, 32.0f, Colors(0, 200, 0));
     UniformTexture texture2 = UniformTexture(material2);
+    Sphere sphere2 = Sphere(Vector3(-0., 0., 0.), 1., &texture2);
 
-    Sphere sphere2 = Sphere(Vector3(1., 0., 0.), 1., &texture2);
+
+    MaterialInfo material3 =
+        MaterialInfo(0.8f, 0.3f, 32.0f, Colors(0, 100, 150));
+    UniformTexture texture3 = UniformTexture(material3);
+    Sphere sphere3 = Sphere(Vector3(2.3, 0., 0.), 1., &texture3);
+
 
     objects.push_back(&sphere);
     objects.push_back(&sphere2);
+    objects.push_back(&sphere3);
+
 
     std::vector<Light*> lights;
     PointLight light = PointLight(Vector3(3., 2., -5.));
+    PointLight light2 = PointLight(Vector3(5., 4., 7.));
     lights.push_back(&light);
+    lights.push_back(&light2);
 
     Scene scene = Scene(objects, lights, camera);
 
